@@ -5,13 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node app.js",
+    "start:dev": "NODE_ENV=development DEBUG=log nodemon",
+    "build": "npm run clean && npm run build-server && npm run copy-static-assets"
   },
-  "author": "",
+  "author": "chirchir",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
+    "dotenv": "^8.1.0",
     "express": "^4.16.3",
     "request": "^2.88.0"
   }
