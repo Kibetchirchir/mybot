@@ -1,4 +1,4 @@
-curl -X POST -H "Content-Type: application/json" -d '{
+clearcurl -X POST -H "Content-Type: application/json" -d '{
                                                                 "persistent_menu":[
                                                                 {
       "locale":"default",

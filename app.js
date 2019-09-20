@@ -1,4 +1,5 @@
-'use strict'
+require('dotenv').config();
+
 
 const express= require('express')
 const bodyParser= require('body-parser')
@@ -35,7 +36,7 @@ app.get('/' , function (req, res){
  * token
  */
 
-let token = "EAAGzfOcz3wUBAMddqEbjkWoA4b1wcTQ2a9T5awqHASrATnQcqcTJsH2MO3WYu0XfvdyUJ7HkSJtMKKPDgDP4XBY3MZAq0B5pGR1VaFLm85WnVTCQsRIyy1UUVup5YvIwf4g6kaA0WIuU6VVHTcef0R8ymZC4WXn5EEOC6l3gZDZD"
+let token = process.env.token
 /**
  * FACEBOOK
  */
