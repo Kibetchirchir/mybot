@@ -158,15 +158,15 @@ function decideMessage(sender, text1){
          const data= response.status
          console.log(response);
          const name = response.data.first_name
-         getstarted(sender,"Hi "+name+",☺ I am Kunta and will be your agent today, how may I help you?")
-         //quickReplyAcc(sender,"I am Kunta and will be your agent today, how may I help you?")
+         getstarted(sender,"Hi "+name+",☺ I am chirchirbot and will be your agent today, how may I help you?")
+         //quickReplyAcc(sender,"I am chirchirbot and will be your agent today, how may I help you?")
        })
        .catch(function (error) {
          console.log(error);
        });
     }
     else if(text.includes("account opening")){
-      openAcc(sender,"Great, welcome to National Bank. To open an account, we will need your National ID and at least KES 100 on your MPESA to activate the account")
+      openAcc(sender,"Great, welcome to Glackemi Bank. To open an account, we will need your Glackemi ID and at least KES 100 on your MPESA to activate the account")
     }
     else if(text.includes("proceed")){
       sendText(sender,"Excellent. To start with, we need your ID number. Please enter below")
@@ -274,7 +274,7 @@ function decideMessage(sender, text1){
     else if(text.includes("load now")){
       sendQuickPush(sender)
     }
-    else if(text.includes("hi kunta")){
+    else if(text.includes("hi chirchirbot")){
       axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
        .then(function (response) {
          const data= response.status
@@ -812,8 +812,8 @@ function decideMessage(sender, text1){
                  const data= response.status
                  console.log(response);
                  const name = response.data.first_name
-                 //sendButtonMessage(sender,"Hi "+name+",  I am Kunta and will be your agent today, how may I help you")
-                 sendText(sender,"Thanks for engaging me "+name+". I am always here for you. Just type “Hi Kunta” or call us on 073012141 and I will return to assist you whichever way I can. Have a fab day! 👋")
+                 //sendButtonMessage(sender,"Hi "+name+",  I am chirchirbot and will be your agent today, how may I help you")
+                 sendText(sender,"Thanks for engaging me "+name+". I am always here for you. Just type “Hi chirchirbot” or call us on 073012141 and I will return to assist you whichever way I can. Have a fab day! 👋")
                  axios.get(`https://nouveta.tech/fbbot_BE/public/index.php/api/postmessage/${sender}/byebye/${text}`)
                   .then(function (response) {
                     const data= response.status
@@ -2188,7 +2188,7 @@ function decideMessage(sender, text1){
                       "payload": {
                         "template_type": "generic",
                         "elements": [{
-                          "title": 'Location Shared By Kunta',
+                          "title": 'Location Shared By chirchirbot',
                           "subtitle": "Nearest nbk bank",
                           "image_url": "https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyDV5zxg6Oj-mdq_vAM4m9CvcjRMu6e3Q4M&markers=color:red|label:B|52,42&size=360x360&zoom=13"
                         }]
