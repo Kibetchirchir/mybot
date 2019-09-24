@@ -1,17 +1,5 @@
 {
   "presets": [
-    ["@babel/preset-es2016"],
-    [
-      "@babel/preset-env", {
-      "targets": {
-        "node": "current"
-      }
-    }
-    ]
-  ],
-  "plugins": [
-    ["@babel/plugin-transform-classes", {
-      "loose": true
-    }]
+    "@babel/preset-env"
   ]
 }
