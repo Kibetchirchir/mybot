@@ -12,32 +12,18 @@ const app = express();
 
 const urlToUse = url();
 
-
-/*
-allow to process data
- */
-
 app.set('port', (process.env.PORT || 5000));
 
 app.use(bodyParser.urlencoded({ extended: false }));
+
 app.use(bodyParser.json());
 
-
-/*
-ROUTES
- */
 
 app.get('/', (req, res) => {
   res.send('HI welcome the url is', url());
 });
 
-/**
- * token
- */
 const { token } = process.env;
-/**
- * FACEBOOK
- */
 
 app.get('/webhook/', (req, res) => {
   if (req.query['hub.verify_token'] === 'chirchir') {
@@ -45,29 +31,6 @@ app.get('/webhook/', (req, res) => {
   }
   res.send('wrong token');
 });
-
-app.post('/webhook/', (req, res) => {
-  const messaging_events = req.body.entry[0].messaging;
-  for (let i = 0; i < messaging_events.length; i++) {
-    const event = messaging_events[i];
-    const sender = event.sender.id;
-    if (event.message && event.message.text) {
-      const { text } = event.message;
-      // sendText(sender,"Text echo: " + text.substring(0,100))
-      console.log('.......................................................................', text);
-
-      decideMessage(sender, text);
-    }
-
-    if (event.postback) {
-      const text = JSON.stringify(event.postback.payload);
-      decideMessage(sender, text);
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', text);
-    }
-  }
-  res.sendStatus(200);
-});
-
 function decideMessage(sender, text1) {
   const text = text1.toLowerCase();
   const service = text;
@@ -75,57 +38,43 @@ function decideMessage(sender, text1) {
     axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
         const name = response.data.first_name;
         sendButtonMessage(sender, `Hi ${name},☺ I am Kunta and will be your agent today, how may I help you?`);
-        // quickReplyAcc(sender,"I am Kunta and will be your agent today, how may I help you?")
       })
       .catch((error) => {
-        console.log(error);
+        // TODO add bugsnag
       });
-    // sendText(sender, "Hi, My name is Kunta. I am National Bank of Kenya's assistant. Press the buttons bellow to choose the service you want?")
-    // sendButtonMessage(sender,"choose one")
   } else if (text === 'hi') {
     axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
       .then((response) => {
-        const data = response.status;
-        console.log(response);
         const name = response.data.first_name;
         sendButtonMessage(sender, `Hi ${name},☺ I am Kunta and will be your agent today, how may I help you?`);
-        // quickReplyAcc(sender,"I am Kunta and will be your agent today, how may I help you?")
       })
       .catch((error) => {
-        console.log(error);
+        // TODO bugsnag the error
       });
   } else if (text.includes('exists')) {
-    // sendGenericMessage(sender)
     sendText(sender, '😞Sorry notice this was your first time here. Kindly provide me with your id Number');
     axios.get(`${urlToUse}/api/postmessage/${sender}/idln/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('link')) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/ID/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
     sendText(sender, 'Enter you phone number beggining with z eg , Z0715428709');
   } else if (text.includes('z211')) {
     axios.get(`${urlToUse}/api/link/${sender}/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
     sendText(sender, 'Message has been sent to your phone');
   } else if (text.includes('//')) {
@@ -133,8 +82,6 @@ function decideMessage(sender, text1) {
       .then((response) => {
         const data = response.status;
         const lee = response.data.status;
-        console.log(response);
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', data, lee);
         if (lee === '200') {
           sendText(sender, 'Account successfully linked');
           sendButtonMessage2(sender, 'Choose the service youll like to use');
@@ -143,52 +90,24 @@ function decideMessage(sender, text1) {
         }
       })
       .catch((error) => {
-        console.log(error);
       });
   }
-  /* else if(text.includes("load")){
-      //sendText(sender,"You can load your account using Mpesa. Enter your phone number below Or if its a different Number enter on the editor")
-      quickReply(sender)
-    } */
   else if (text.includes('acc')) {
     quickReplyAcc1(sender);
   } else if (text.includes('check')) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/balance/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
     sendQuickbal(sender, 'No problem, but first i need to confirm your details  kindly provide me with the following \n 1.Your National ID');
-    /* axios.get(`${urlToUse}/api/balance/${sender}`)
-         .then(function (response) {
-           console.log(response);
-           //console.log("This is me",phoneNumber);
-         })
-         .catch(function (error) {
-           console.log(error);
-         });
-        sendText(sender, "Thank the request has been received, Youll receive a text message on your registered number with your acc balance.")
-        //sendButtonMessage2(sender,"Choose the service youll like to use")
-        sendQuickcheq(sender,"Anything else you would like my assitance on?")
-        axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
-         .then(function (response) {
-           const data= response.status
-           console.log(response);
-         })
-         .catch(function (error) {
-           console.log(error);
-         }); */
   } else if (text.includes('okay')) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/balanceco/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
     sendText(sender, 'Kindly provide me with your id number');
   } else if (text.includes('mini')) {
@@ -196,51 +115,40 @@ function decideMessage(sender, text1) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/mini1/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('statement')) {
     sendButtonStatement(sender, 'Do you want a');
   } else if (text.includes('hard')) {
     sendText(sender, "We've received your request we will contact you once its ready. Thank you");
 
-    // sendButtonMessage2(sender,"Choose the service youll like to use")
     axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
         sendQuickcheq(sender, 'Anything else you would like my assitance on?');
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('soft')) {
     sendText(sender, 'You will receive your statement on your email registered to us');
-    // sendButtonMessage2(sender,"Choose the service youll like to use")
     sendQuickcheq(sender, 'Anything else you would like my assitance on?');
     axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('book')) {
     sendButtonCheque(sender, 'How many level');
   } else if (text.includes('25l')) {
     sendText(sender, "Thank you We've received your request once its ready we'll inform you . Thank you");
-    // sendButtonMessage2(sender,"Choose the service youll like to us to help you")
     sendQuickcheq(sender, 'Anything else you would like my assitance on?');
     axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('trans')) {
     sendQuickTrans(sender, 'Choose the service youll like to use');
@@ -248,79 +156,58 @@ function decideMessage(sender, text1) {
     quickReplyPay(sender);
     axios.get(`${urlToUse}/api/postmessage/${sender}/deposit/${text}`)
       .then((response) => {
-        console.log(response);
-        console.log('This is me', phoneNumber);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('//')) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/deposit/${text}`)
       .then((response) => {
-        console.log(response);
-        console.log('This is me', phoneNumber);
       })
       .catch((error) => {
-        console.log(error);
       });
     quickReply(sender);
   } else if (text.includes('deposit')) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/deposit/${text}`)
       .then((response) => {
-        console.log(response);
-        console.log('This is me', phoneNumber);
       })
       .catch((error) => {
-        console.log(error);
       });
-    console.log('I am the service', sender);
     quickReply(sender);
   } else if (text.includes('//')) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/phone/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
-    console.log('I am the number', text);
     const phoneNumber = text;
     sendText(sender, 'please enter the amount you will wish to deposit starting with the word X for example 250 to deposit Ksh250');
   } else if (text.includes('//')) {
     axios.get(`${urlToUse}/api/push/${sender}/amount/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
-    console.log('I am the number', text);
     const phoneNumber = text;
     sendText(sender, 'You will recieve a push notification shortly');
     quickReplyAcc(sender);
   } else if (text.includes('fer')) {
-    console.log('im the service', text);
     const service = text;
     sendText(sender, 'please enter the acount number you will wish to transfer starting with the Bank example NBK123');
     axios.get(`${urlToUse}/api/postmessage/${sender}/tranfer/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (service === 'NBK') {
     sendText(sender, 'you will recieve an OTP on your phone enter the OTP starting with the word O here to confirm the transaction for example O1234');
     axios.get(`${urlToUse}/api/otp/${sender}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (service === 'O') {
     sendText(sender, 'wrong OTP');
@@ -328,36 +215,28 @@ function decideMessage(sender, text1) {
   } else if (text.includes('gen')) {
     sendButtonGen(sender, 'This are general services available');
   } else if (text.includes('locate')) {
-    // let service = "loc"
     axios.get(`${urlToUse}/api/postmessage/${sender}/location/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
         quickReplyLoc(sender);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (service === 'loc') {
     sendText(sender, 'The nearest branch is NBK .. opens at 8 and closses at 5. The Atms available are .... they work 24/7');
     sendButtonGen(sender, 'This are general services available');
   } else if (text.includes('nonexist')) {
-    //    the yes no for account opening
     sendQuickYes(sender);
   } else if (text.includes('water')) {
     const service = text;
     sendText(sender, 'please enter the amount you will wish to pay');
   } else if (service === 'water') {
     sendText(sender, 'Youll receive a push notification shortly');
-    console.log('I am amount', text);
     const amount = text;
     axios.post('https://payme.ticketsoko.com/api/index.php?function=CustomerPayBillOnline&PayBillNumber=175555&Amount=500&PhoneNumber=254715428709&AccountReference=tickets&TransactionDesc=yolo')
       .then((response) => {
-        console.log(response);
-        console.log('This is me', phoneNumber);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('kibet')) {
     sendText(sender, 'US DOLLAR	100.7472	100.6472	100.8472\n,US DOLLAR	100.7472	100.6472	100.8472\n,US DOLLAR	100.7472	100.6472	100.8472\n,US DOLLAR	100.7472	100.6472	100.8472');
@@ -367,39 +246,26 @@ function decideMessage(sender, text1) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/chequestatus/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('debit')) {
-    // sendText(sender,"Request received we will contact you when it is ready")
-    // sendButtonMessage2(sender,"Choose the service youll like to use")
     sendQuickdebit(sender);
     axios.get(`${urlToUse}/api/postmessage/${sender}/email/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('not now')) {
     sendQuickcheq(sender, 'Anything else you would like my assitance on?');
     axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('qali')) {
-    // sendText(sender,"Please enter your ID number starting with the word ID eg ID33865745")
-    // the yes no for account opening
-    // sendQuickYes(sender)
-    //  sendText(sender,"Great welcome to national bank")
-
     sendQuickRead(sender, 'Great welcome to national bank, there are afew items you will require on hand, Your National ID and make sure your MPESA has atleast Kshs 100.00, cofirm when ready ');
   } else if (text.includes('cancel')) {
     sendButtonMessage2(sender, 'Process cancelled \n Choose the service youll like to use');
@@ -408,16 +274,13 @@ function decideMessage(sender, text1) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/idreg/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('i dont mind')) {
     sendQuickDep(sender, 'We have Chequebooks and Debit card for your account which if requested cn be picked from a branch of your convinience would you like to order for any of them');
   } else if (text.includes('///')) {
-    // sendText(sender,"Please enter your ID number starting with the word ID eg ID33865745")
-    // the id Number
+
     sendText(sender, 'Good, there are afew items you will require on hand, Your National ID and make sure your MPESA has atleast Kshs 100.00, cofirm when ready.Enter your ID number starting with the word ID eg ID33865745');
   } else if (text.includes('cheque')) {
     sendQuickcheq(sender);
@@ -427,33 +290,27 @@ function decideMessage(sender, text1) {
     axios.get(`${urlToUse}/api/postmessage/${sender}/reg2/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
         sendText(sender, 'Gorrit, Enter you phone number beggining with the country code eg 254715428709');
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('///n')) {
     axios.get(`${urlToUse}/api/register/${sender}/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
     sendText(sender, 'You will receive an OTP on your phone Please enter here to verify your phoneNumber');
   } else if (text.includes('hi kunta')) {
     axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
         const name = response.data.first_name;
         sendText(sender, `Hi ${name},  Welcome back.`);
         sendButtonMessage2(sender, 'This is are ways I can help you');
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('load ksh.100 now')) {
     sendText(sender, 'You will receive an STK push enter you mpesa pin and proceed');
@@ -461,92 +318,67 @@ function decideMessage(sender, text1) {
       .then((response) => {
         const data = response.status;
         sendQuickDep(sender);
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('load more than')) {
     sendText(sender, 'Enter the amount you want to deposit');
     axios.get(`${urlToUse}/api/postmessage/${sender}/more100/${text}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
       });
   } else if (text.includes('load later')) {
     sendQuickDep(sender);
   } else if (text.includes('//')) {
-    // to be deleted on production
     axios.get(`${urlToUse}/api/otp/${sender}/${text}`)
       .then((response) => {
         const data = response.status;
         const lee = response.data.status;
-        console.log(response);
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', data, lee);
         if (lee === '200') {
           sendText(sender, 'Ok, am sending you a request for a small initail deposit to activate the account');
-          // sleep(10000);
-          // sendQuickDep(sender)
+
           axios.get(`${urlToUse}/api/push1/${sender}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
-              // sendQuickDep(sender)
-              // sendQuickcheq(sender,"I have confirmed your details,And your account number has been sent to your phone, do you mind if I took you through some of our products that you may find useful?")
               sendQuickmind(sender);
               axios.get(`${urlToUse}/api/postmessage/${sender}/reg3/${text}`)
                 .then((response) => {
                   const data = response.status;
-                  console.log(response);
                 })
                 .catch((error) => {
-                  console.log(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
             });
         } else {
           sendText(sender, 'Wrong OTP. Contact our customer care for assistant');
         }
       })
       .catch((error) => {
-        console.log(error);
       });
   } else {
-    // sendText(sender,text)
     axios.get(`${urlToUse}/api/pastmessage/${sender}`)
       .then((response) => {
         const data = response.status;
-        console.log(response);
         const message = response.data.data;
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', message);
         if (message === 'registeryes') {
           sendText(sender, 'Good, there are afew items you will require on hand, Your National ID and make sure your MPESA has atleast Kshs 100.00, cofirm when ready.Enter your ID number starting with the word ID eg ID33865745');
         }
-        // reg part 2
         else if (message === 'reg2') {
           axios.get(`${urlToUse}/api/register/${sender}/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               axios.get(`${urlToUse}/api/postmessage/${sender}/otpreg/${text}`)
                 .then((response) => {
                   const data = response.status;
-                  console.log(response);
                 })
                 .catch((error) => {
-                  console.log(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
             });
-          // post the messaging_for OTP
-          // sendText(sender,"You will receive an OTP on your phone. Please enter the OTP here to verify your phoneNumber")
           quickReplyOTP(sender, 'You will receive an OTP on your phone. Please enter the OTP here to verify your phoneNumber');
         }
         // for the otp confirmation
@@ -555,78 +387,57 @@ function decideMessage(sender, text1) {
             .then((response) => {
               const data = response.status;
               const lee = response.data.status;
-              console.log(response);
-              console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', data, lee);
               if (lee === '200') {
-                // sendText(sender,"We have confirmed your number, am sending you a request for a small initail deposit of Ksh.100 to activate the account.")
-                // sleep(10000);
-                // sendQuickDep(sender)
-                // sendQuickmind(sender)
+
                 sendQuickPush(sender);
               } else {
-                // sendText(sender,"Wrong OTP. Contact our customer care for assistant")quickReplyOTP()
                 quickReplyOTP(sender, 'Wrong OTP. Contact our customer care for assistant');
               }
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'idln') {
           axios.get(`${urlToUse}/api/postmessage/${sender}/ID/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               axios.get(`${urlToUse}/api/postmessage/${sender}/phonelink/${text}`)
                 .then((response) => {
                   const data = response.status;
-                  console.log(response);
                 })
                 .catch((error) => {
-                  console.log(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
             });
           sendText(sender, 'Enter you phone number beggining with country code eg , 254715428709');
         } else if (message === 'mini1') {
           axios.get(`${urlToUse}/api/ministatement/${sender}`)
             .then((response) => {
-              console.log(response);
               const number = response.data.data;
               const str = number.replace(/\d(?=\d{4})/g, '*');
               sendQuickcheq(sender, `Your ministatement as been sent to your phone ${str} .Anything else you would like my assitance on?`);
             })
             .catch((error) => {
-              console.log(error);
             });
-          // console.log('............................................................',number);
-          // sendText(sender, "Thank the request has been received, Youll receive a text message on your phone."+str+"")
 
           axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'phonelink') {
           axios.get(`${urlToUse}/api/link/${sender}/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               axios.get(`${urlToUse}/api/postmessage/${sender}/otplink/${text}`)
                 .then((response) => {
                   const data = response.status;
-                  console.log(response);
                 })
                 .catch((error) => {
-                  console.log(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
             });
           sendText(sender, 'OTP has been sent to your phone use to link the account');
         } else if (message === 'otplink') {
@@ -634,60 +445,43 @@ function decideMessage(sender, text1) {
             .then((response) => {
               const data = response.status;
               const lee = response.data.status;
-              console.log(response);
-              console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', data, lee);
               if (lee === '200') {
                 sendText(sender, 'Two accounts \n 1. 121454*******25. \n2. 35422**************32. \n have been linked to this facebook account');
                 axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
                   .then((response) => {
                     const data = response.status;
-                    console.log(response);
                     const name = response.data.first_name;
-                    // sendText(sender,"Hi "+name+",  Welcome back.")
                     sendButtonMessage2(sender, 'This are ways I can help you');
                   })
                   .catch((error) => {
-                    console.log(error);
                   });
-                // sendButtonMessage2(sender,"Here are services available")
               } else {
                 sendText(sender, 'Wrong OTP. Contact our customer care for assistant');
               }
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'balanceco1') {
           axios.get(`${urlToUse}/api/balance/${sender}`)
             .then((response) => {
-              console.log(response);
-              // console.log("This is me",phoneNumber);
               const number = response.data.phone;
               const str = number.replace(/\d(?=\d{4})/g, '*');
-              // console.log('............................................................',number);
-              // sendText(sender, "Thank the request has been received, Youll receive a text message on your phone."+str+"")
               sendQuickcheq(sender, `Your balance as been sent to your phone ${str} .Anything else you would like my assitance on?`);
             })
             .catch((error) => {
-              console.log(error);
             });
-          // sendButtonMessage2(sender,"Choose the service youll like to use")
           axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'balanceco') {
           axios.get(`${urlToUse}/api/postmessage/${sender}/balanceco1/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
             })
             .catch((error) => {
-              console.log(error);
             });
           sendText(sender, 'Please choose the Account you would want to check the balance \n 1 acc 543*******325\n 2 acc 543***********125');
         } else if (message === 'chequestatus') {
@@ -695,20 +489,16 @@ function decideMessage(sender, text1) {
             axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
               .then((response) => {
                 const data = response.status;
-                console.log(response);
               })
               .catch((error) => {
-                console.log(error);
               });
             sendQuickcheq(sender, 'Anything else you would like my assitance on?');
           } else {
             axios.get(`${urlToUse}/api/postmessage/${sender}/chequeLocation/${text}`)
               .then((response) => {
                 const data = response.status;
-                console.log(response);
               })
               .catch((error) => {
-                console.log(error);
               });
             sendText(sender, 'Enter the convenient branch you will pick your cheque/debit');
           }
@@ -717,10 +507,8 @@ function decideMessage(sender, text1) {
           axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'final') {
           if (text === 'yes') {
@@ -729,13 +517,10 @@ function decideMessage(sender, text1) {
             axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
               .then((response) => {
                 const data = response.status;
-                console.log(response);
                 const name = response.data.first_name;
-                // sendButtonMessage(sender,"Hi "+name+",  I am Kunta and will be your agent today, how may I help you")
                 sendText(sender, `Have a great day ${name} and hope to hear from you soon, you can always reachout to me here by just typing 'Hi' or call us on 0703088000. And im always here 24/7 to assist you 👋`);
               })
               .catch((error) => {
-                console.log(error);
               });
           }
         } else if (message === 'email') {
@@ -744,20 +529,16 @@ function decideMessage(sender, text1) {
             axios.get(`${urlToUse}/api/postmessage/${sender}/emailfinal/${text}`)
               .then((response) => {
                 const data = response.status;
-                console.log(response);
               })
               .catch((error) => {
-                console.log(error);
               });
           } else {
             sendQuickcheq(sender, 'Anything else you would like my assitance on?');
             axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
               .then((response) => {
                 const data = response.status;
-                console.log(response);
               })
               .catch((error) => {
-                console.log(error);
               });
           }
         } else if (message === 'emailfinal') {
@@ -765,10 +546,8 @@ function decideMessage(sender, text1) {
           axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'reg3') {
           if (text === 'yes') {
@@ -778,62 +557,48 @@ function decideMessage(sender, text1) {
             axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
               .then((response) => {
                 const data = response.status;
-                console.log(response);
               })
               .catch((error) => {
-                console.log(error);
               });
           }
         } else if (message === 'deposit') {
           axios.get(`${urlToUse}/api/postmessage/${sender}/phone/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'amountdepo') {
           axios.get(`${urlToUse}/api/push/${sender}/amount/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               sleep(2000);
               axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
                 .then((response) => {
                   const data = response.status;
-                  console.log(response);
                   sendQuickcheq(sender, 'Anything else you would like my assitance on?');
                 })
                 .catch((error) => {
-                  console.log(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
             });
-          console.log('I am the number', text);
           const phoneNumber = text;
           sendText(sender, 'You will recieve a push notification shortly');
         } else if (message === 'more100') {
           axios.get(`${urlToUse}/api/push2/${sender}/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
                 .then((response) => {
                   const data = response.status;
-                  console.log(response);
                   sendQuickcheq(sender, 'Anything else you would like my assitance on?');
                 })
                 .catch((error) => {
-                  console.log(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
             });
-          console.log('I am the number', text);
           const phoneNumber = text;
           sendText(sender, 'You will recieve a push notification shortly');
         } else if (message === 'location') {
@@ -841,30 +606,42 @@ function decideMessage(sender, text1) {
           axios.get(`${urlToUse}/api/postmessage/${sender}/final/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               sendQuickcheq(sender, 'Anything else you would like my assitance on?');
             })
             .catch((error) => {
-              console.log(error);
             });
         } else if (message === 'idreg') {
           axios.get(`${urlToUse}/api/postmessage/${sender}/reg2/${text}`)
             .then((response) => {
               const data = response.status;
-              console.log(response);
               sendText(sender, 'Gorrit, Enter you phone number beggining with the country code eg 254715428709');
             })
             .catch((error) => {
-              console.log(error);
             });
         }
       })
       .catch((error) => {
-        console.log(error);
       });
   }
 }
-//
+app.post('/webhook/', (req, res) => {
+  const messagingEvents = req.body.entry[0].messaging;
+  for (let i = 0; i < messagingEvents.length; i++) {
+    const event = messagingEvents[i];
+    const sender = event.sender.id;
+    if (event.message && event.message.text) {
+      const { text } = event.message;
+      decideMessage(sender, text);
+    }
+
+    if (event.postback) {
+      const text = JSON.stringify(event.postback.payload);
+      decideMessage(sender, text);
+    }
+  }
+  res.sendStatus(200);
+});
+
 function sendButtonMessage(sender, text) {
   const messageData = {
     attachment: {
@@ -894,7 +671,6 @@ function sendButtonMessage(sender, text) {
   };
   sendRequest(sender, messageData);
 }
-// the buttin for hard copy and SoftCopy
 function sendButtonStatement(sender, text) {
   const messageData = {
     attachment: {
@@ -919,7 +695,7 @@ function sendButtonStatement(sender, text) {
   };
   sendRequest(sender, messageData);
 }
-// general services
+
 function sendButtonGen(sender, text) {
   const messageData = {
     attachment: {
@@ -951,7 +727,6 @@ function sendButtonGen(sender, text) {
   sendRequest(sender, messageData);
 }
 
-// the user second buttons
 function sendButtonMessage2(sender, text) {
   const messageData = {
     attachment: {
@@ -982,7 +757,7 @@ function sendButtonMessage2(sender, text) {
   };
   sendRequest(sender, messageData);
 }
-// cheque response
+
 function sendButtonCheque(sender, text) {
   const messageData = {
     attachment: {
@@ -1008,7 +783,7 @@ function sendButtonCheque(sender, text) {
   };
   sendRequest(sender, messageData);
 }
-// quickReply
+
 function quickReply(sender) {
   const messageData = {
     text: 'Here is your phone number if not shown that means you dont have a number on your profile.You can enter your number from the text area starting with 254',
@@ -1025,9 +800,7 @@ function quickReply(sender) {
   };
   sendRequest(sender, messageData);
 }
-/**
- location
- */
+
 function quickReplyLoc(sender) {
   const messageData = {
     text: 'Please click on the button below and share your location or type on the text field',
@@ -1044,9 +817,7 @@ function quickReplyLoc(sender) {
   };
   sendRequest(sender, messageData);
 }
-/**
- Account
- */
+
 function quickReplyAcc1(sender) {
   const messageData = {
     text: 'Select your response swipe left for more replies',
@@ -1055,25 +826,21 @@ function quickReplyAcc1(sender) {
         content_type: 'text',
         title: 'check balance',
         payload: 'balance',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'request Ministatement',
         payload: 'mini',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'request statement',
         payload: 'statement',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Cheque book request',
         payload: 'book',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
@@ -1084,7 +851,6 @@ function quickReplyAcc1(sender) {
   };
   sendRequest(sender, messageData);
 }
-// first encounter
 
 function quickReplyAcc(sender, text) {
   const messageData = {
@@ -1094,25 +860,21 @@ function quickReplyAcc(sender, text) {
         content_type: 'text',
         title: 'Account opening(new customer)',
         payload: 'balance',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'service request(returning customer)',
         payload: 'mini',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Enquiries',
         payload: 'book',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// OTP not sendText
 function quickReplyOTP(sender, text) {
   const messageData = {
     text,
@@ -1121,15 +883,12 @@ function quickReplyOTP(sender, text) {
         content_type: 'text',
         title: 'Resend OTP',
         payload: 'Resend OTP',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-/**
- quick reply PayB
- */
+
 function quickReplyPay(sender) {
   const messageData = {
     text: 'Select your response swipe left for more replies',
@@ -1138,33 +897,27 @@ function quickReplyPay(sender) {
         content_type: 'text',
         title: 'Nairobi water services',
         payload: 'water',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'buy airtime services',
         payload: 'water',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Nairobi county services',
         payload: 'water',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Other services',
         payload: 'water',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-/**
- transaction button
- */
+
 function sendQuickTrans(sender) {
   const messageData = {
     text: 'Please select your response bellow',
@@ -1173,19 +926,18 @@ function sendQuickTrans(sender) {
         content_type: 'text',
         title: 'deposit',
         payload: 'chir',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Transfer to annother Account',
         payload: 'fer',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// ready
+
+
 function sendQuickRead(sender, text) {
   const messageData = {
     text,
@@ -1194,19 +946,16 @@ function sendQuickRead(sender, text) {
         content_type: 'text',
         title: 'ready',
         payload: 'ready',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Not now',
         payload: 'Not now',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// send quick transfer
 function sendQuickDep(sender) {
   const messageData = {
     text: 'We also have Chequebooks and Debit Card for your account which if requested can be picked form a branch of your convinience, would you like to order for any of them',
@@ -1215,25 +964,21 @@ function sendQuickDep(sender) {
         content_type: 'text',
         title: 'cheque.',
         payload: 'cheque.',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'debit card',
         payload: 'debit card',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'not now',
         payload: 'not now',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// do you mind
 function sendQuickmind(sender) {
   const messageData = {
     text: 'Do you mind if i took you through some of our product that you may find useful',
@@ -1242,19 +987,16 @@ function sendQuickmind(sender) {
         content_type: 'text',
         title: 'I dont mind',
         payload: 'I dont mind',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'not now',
         payload: 'not now',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// push
 function sendQuickPush(sender) {
   const messageData = {
     text: `I have confirmed your details, Your new acount is: ${sender}, to activate your account you are required to make an initial deposit of atlist 100`,
@@ -1263,25 +1005,21 @@ function sendQuickPush(sender) {
         content_type: 'text',
         title: 'Load Ksh.100 now',
         payload: 'load Ksh.100 now',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'Load more than Ksh.100',
         payload: 'Load more than Ksh.100',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'load later',
         payload: 'load later',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// Cheque
 function sendQuickcheq(sender, text) {
   const messageData = {
     text,
@@ -1290,19 +1028,17 @@ function sendQuickcheq(sender, text) {
         content_type: 'text',
         title: 'yes',
         payload: 'yes',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'no',
         payload: 'no',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
   sendRequest(sender, messageData);
 }
-// balance
+
 function sendQuickbal(sender, text) {
   const messageData = {
     text,
@@ -1311,13 +1047,11 @@ function sendQuickbal(sender, text) {
         content_type: 'text',
         title: 'okay',
         payload: 'okay',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'not now',
         payload: 'not now',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
@@ -1332,13 +1066,11 @@ function sendQuickdebit(sender) {
         content_type: 'text',
         title: 'yes',
         payload: 'yes',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'no',
         payload: 'no',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
@@ -1353,13 +1085,11 @@ function sendQuickYes(sender) {
         content_type: 'text',
         title: 'yes',
         payload: 'yes12',
-        // "image_url":"http://example.com/img/red.png"
       },
       {
         content_type: 'text',
         title: 'no',
         payload: 'yes12',
-        // "image_url":"http://example.com/img/red.png"
       }
     ]
   };
@@ -1377,9 +1107,8 @@ function sendRequest(sender, messageData) {
     }
   }, (error, response, body) => {
     if (error) {
-      console.log('sending error');
     } else if (response.body.error) {
-      console.log('response body error');
+      // TODO it
     }
   });
 }
@@ -1435,7 +1164,6 @@ function sendGenericMessage(sender) {
 }
 
 app.listen(app.get('port'), () => {
-  console.log('running: port', urlToUse);
 });
 function sleep(milliseconds) {
   const start = new Date().getTime();
