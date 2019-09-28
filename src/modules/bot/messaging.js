@@ -548,7 +548,6 @@ function decideMessage(sender, text1) {
         sendButtonMessage(sender, `Hi ${name},☺ I am Kunta and will be your agent today, how may I help you?`);
       })
       .catch((error) => {
-        // console.log(error);
         // TODO add bugsnag
       });
   } else if (text === 'hi') {
@@ -1129,9 +1128,7 @@ function decideMessage(sender, text1) {
 }
 
 function messageReceived(req, res) {
-  console.log('............................This is the token', token);
   const messagingEvents = req.body.entry[0].messaging;
-  console.log('.................', messagingEvents);
   for (let i = 0; i < messagingEvents.length; i++) {
     const event = messagingEvents[i];
     const sender = event.sender.id;
