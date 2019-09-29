@@ -1,11 +1,13 @@
 import axios from 'axios';
 import request from 'request';
 import dotenv from 'dotenv';
+import url from '../../startup/url';
 
 dotenv.config();
 
 
 const { token } = process.env;
+const urlToUse = url();
 
 function sleep(milliseconds) {
   const start = new Date().getTime();
