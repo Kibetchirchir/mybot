@@ -4,10 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build-server": "babel ./ --out-dir dist --copy-files --ignore node_modules",
+    "build": "npm run clean && npm run build-server",
+    "clean": "rm -rf dist && mkdir dist",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.js",
-    "start:dev": "nodemon --exec babel-node src/app.js",
-    "build": "npm run clean && npm run build-server && npm run copy-static-assets"
+    "serve": "node dist/src/app.js",
+    "start": "NODE_ENV=production npm run build && npm run serve",
+    "start:dev": "nodemon --exec babel-node src/app.js"
   },
   "author": "chirchir",
   "license": "ISC",
