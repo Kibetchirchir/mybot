@@ -1,5 +1,6 @@
 function validate(req, res) {
-  if (req.query['hub.verify_token'] === 'chirchir') {
+  const { FBTOKEN: fbToken } = process.env;
+  if (req.query['hub.verify_token'] === fbToken) {
     res.send(req.query['hub.challenge']);
   }
   res.send('wrong token');

@@ -6,7 +6,7 @@ import url from '../../startup/url';
 dotenv.config();
 
 
-const { token } = process.env;
+const { PAGETOKEN: token } = process.env;
 const urlToUse = url();
 
 function sleep(milliseconds) {
