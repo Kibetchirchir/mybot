@@ -18,6 +18,24 @@ function sleep(milliseconds) {
   }
 }
 
+function sendRequest(sender, messageData) {
+  request({
+    url: 'https://graph.facebook.com/v2.6/me/messages',
+    qs: { access_token: token },
+    method: 'POST',
+    json: {
+      recipient: { id: sender },
+      message: messageData,
+    }
+  }, (error, response, body) => {
+    if (error) {
+      console.log(error);
+    } else if (response.body.error) {
+      // TODO it
+    }
+  });
+}
+
 function sendButtonMessage(sender, text) {
   const messageData = {
     attachment: {
@@ -472,23 +490,6 @@ function sendQuickYes(sender) {
   sendRequest(sender, messageData);
 }
 
-function sendRequest(sender, messageData) {
-  request({
-    url: 'https://graph.facebook.com/v2.6/me/messages',
-    qs: { access_token: token },
-    method: 'POST',
-    json: {
-      recipient: { id: sender },
-      message: messageData,
-    }
-  }, (error, response, body) => {
-    if (error) {
-    } else if (response.body.error) {
-      // TODO it
-    }
-  });
-}
-
 function sendText(sender, text) {
   const messageData = { text };
   sendRequest(sender, messageData);
@@ -547,18 +548,22 @@ function decideMessage(sender, text1) {
       .then((response) => {
         const data = response.status;
         const name = response.data.first_name;
+        console.log(data);
         sendButtonMessage(sender, `Hi ${name},☺ I am Kunta and will be your agent today, how may I help you?`);
       })
       .catch((error) => {
         // TODO add bugsnag
       });
   } else if (text === 'hi') {
+    console.log('wamenipata');
     axios.get(`https://graph.facebook.com/${sender}?fields=first_name,last_name,profile_pic&access_token=${token}`)
       .then((response) => {
+        console.log(response);
         const name = response.data.first_name;
         sendButtonMessage(sender, `Hi ${name},☺ I am Kunta and will be your agent today, how may I help you?`);
       })
       .catch((error) => {
+        console.log('its an error boss', error);
         // TODO bugsnag the error
       });
   } else if (text.includes('exists')) {
@@ -1131,19 +1136,18 @@ function decideMessage(sender, text1) {
 
 function messageReceived(req, res) {
   const messagingEvents = req.body.entry[0].messaging;
-  for (let i = 0; i < messagingEvents.length; i++) {
-    const event = messagingEvents[i];
-    const sender = event.sender.id;
-    if (event.message && event.message.text) {
-      const { text } = event.message;
-      decideMessage(sender, text);
-    }
 
-    if (event.postback) {
-      const text = JSON.stringify(event.postback.payload);
-      decideMessage(sender, text);
+  messagingEvents.forEach((messageEvent) => {
+    const { sender: { id: userId } } = messageEvent;
+    if (messageEvent.message && messageEvent.message.text) {
+      const { message: { text } } = messageEvent;
+      decideMessage(userId, text);
     }
-  }
+    if (messageEvent.postback) {
+      const text = JSON.stringify(messageEvent.postback.payload);
+      decideMessage(userId, text);
+    }
+  });
   res.sendStatus(200);
 }
 

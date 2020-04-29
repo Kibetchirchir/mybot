@@ -25,5 +25,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(app.get('port'), () => {
-  console.log(urlToUse);
+  console.log('app listening to port: ');
 });
