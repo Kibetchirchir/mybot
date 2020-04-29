@@ -24,6 +24,8 @@ app.get('/', (req, res) => {
   res.send('HI welcome the url is', url());
 });
 
-app.listen(app.get('port'), () => {
-  console.log('app listening to port: ');
+const serverPort = app.get('port');
+
+app.listen(serverPort, () => {
+  console.log('app listening to port:', serverPort);
 });
